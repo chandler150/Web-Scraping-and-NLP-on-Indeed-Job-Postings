@@ -9,7 +9,6 @@
 
 # I am going to get job listings from Indeed.com using BeautifulSoup. Luckily, Indeed.com is a simple text page where we can easily find relevant entries.
 
-# In[1]:
 
 
 base_url = "http://www.indeed.com"    
@@ -17,24 +16,42 @@ base_url = "http://www.indeed.com"
 URL = "http://www.indeed.com/jobs?q=data+scientist+%2420%2C000&l=New+York&start=10"
 
 
-# In[2]:
 
 
-import urllib
+#import urllib
 import requests
-import bs4
+#import bs4
 from bs4 import BeautifulSoup
 import pandas as pd
-import re
+#import re
 import sys
 import os.path
-print("hello")
-CWD = os.path.abspath(os.path.dirname(sys.executable))
+import ctypes
+import os
+import pdb
 
 
+
+frozen = getattr(sys, 'frozen', False)
+
+if not frozen:
+    # not frozen: in regular python interpreter
+    CWD = os.path.dirname(__file__)
+
+elif frozen in ('dll', 'console_exe', 'windows_exe'):
+    # py2exe:
+    CWD = os.path.dirname(sys.executable)
+
+elif frozen in ('macosx_app',):
+    # py2app:
+    # Notes on how to find stuff on MAC, by an expert (Bob Ippolito):
+    # http://mail.python.org/pipermail/pythonmac-sig/2004-November/012121.html
+    CWD = os.environ['RESOURCEPATH']
+breakpoint()
+print(frozen)
 with open(os.path.join(CWD, "config.ini")) as config_file:
     print(config_file.read())
-   
+print("HERE")
 try:
     # >3.2
     from configparser import ConfigParser
@@ -53,7 +70,7 @@ if not os.path.isfile(config_path):
     raise BadConfigError # not a standard python exception
 
 config.read(config_path)
-
+print("OR HERE")
 
 # Get a list of all sections
 print('Sections: %s' % config.sections())
@@ -75,9 +92,6 @@ if 'main_section' not in config:
 #print(config['main_section'].getfloat('key3'))
 #print(config['main_section'].getboolean('key99', False))
 
-
-
-# In[3]:
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
 html = requests.get(URL, headers=headers)
 
@@ -95,16 +109,12 @@ html = requests.get(URL, headers=headers)
 # ### Extract location, company, job title and summary of job posting
 # 
 
-# In[5]:
-
 
 # urls = soup.findAll('a',{'rel':'nofollow','target':'_blank'}) #this are the links of the job posts
 # urls = [link['href'] for link in urls] 
     
 # print urls[0]
 
-
-# In[38]:
 
 
 # function to get above information
@@ -137,7 +147,6 @@ def parse(url, df, search):
     return df
 
 
-# In[7]:
 
 
 parse(URL,df, "data scientist")
@@ -145,18 +154,17 @@ parse(URL,df, "data scientist")
 
 # #### filter ads and expand the data
 
-# In[94]:
 
 
-import numpy as np
+#import numpy as np
 import pandas as pd
-import nltk
-import re
+#import nltk
+#import re
 import os
 
-from sklearn import decomposition
-from sklearn.feature_extraction.text import TfidfVectorizer
-import matplotlib.pyplot as plt
+#from sklearn import decomposition
+#from sklearn.feature_extraction.text import TfidfVectorizer
+#import matplotlib.pyplot as plt
 
 
 
@@ -168,7 +176,6 @@ import matplotlib.pyplot as plt
 # 
 # 
 
-# In[34]:
 
 
 # create a template for changing search term, city and number of postings. 
@@ -194,7 +201,6 @@ cities = config['main_section'].get('cities').split(', ')
 #     'Reston', 'Roanoke'])
 
 
-# In[39]:
 
 
 df_more = pd.DataFrame(columns=["Title","Search","Location","Company", "detail_url"])
@@ -209,21 +215,18 @@ for search in search_term:
             #print(df_more)
 
 
-# In[40]:
 
 
 print(df_more.shape)
 df_more.head(100)
 
 
-# In[42]:
 
 
 df_more=df_more.dropna().drop_duplicates()
 print('You have ' + str(df_more.shape[0]) + ' results. ')
 
 
-# In[45]:
 
 
 df_more = df_more[~df_more['Location'].isin(['None'])]
@@ -231,79 +234,8 @@ df_more = df_more[~df_more['Location'].isin(['None'])]
 df_more.describe()
 
 
-# In[74]:
-
-
 df_more.shape
 
-
-# ### read url
-
-# In[59]:
-
-"""
-# save useful job description into a list
-def parse_jd(url):
-    jd = 'None'
-    html = requests.get(url)
-    soup = BeautifulSoup(html.content, 'html.parser', from_encoding="utf-8")
-    for each in soup.find_all(class_="jobsearch-JobComponent-description icl-u-xs-mt--md"):        
-        jd =  each.text.replace('\n', '')
-    return jd
-
-
-# In[60]:
-
-
-url_detail = df_more['detail_url']
-summary = []
-check_progress = 0
-for url in url_detail:
-    if check_progress%50 == 0:
-        print(check_progress)
-    check_progress += 1
-    url_new = base_url + url
-    try:
-        s = parse_jd(url_new)
-        summary.append(s) 
-    except: 
-        continue
-        
-    
-
-
-# In[80]:
-
-
-print(len(summary))
-summary[0]
-
-
-# In[64]:
-
-
-textfile = open('JD.txt', 'w')
-check_progress = 0
-for s in summary:
-    #if check_progress%50 == 0:
-        #print check_progress/50*('*') 
-    check_progress += 1
-    s = s.encode('utf-8')
-    textfile.write(s + '\n')
-    textfile.write('\n BREAKS HERE')
-textfile.close()
-
-
-# read data from txt
-
-# In[69]:
-
-
-job_description = open('JD.txt').read().split('\n BREAKS HERE')
-print(len(job_description))
-
-"""
-# In[71]:
 import datetime
 current_datetime = datetime.datetime.now()
 str_date = current_datetime.strftime("%m-%d-%Y")
