@@ -1,4 +1,0 @@
-([('IndeedScraper',
-   '/Users/chandlerjones/Documents/Work/2022/Carolyn '
-   'Scraper/Web-Scraping-and-NLP-on-Indeed-Job-Postings/dist/IndeedScraper',
-   'EXECUTABLE')],)
